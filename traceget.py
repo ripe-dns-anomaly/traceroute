@@ -10,6 +10,9 @@ import csv
 import argparse
 import pytz
 
+# Commandline arguments
+
+
 def valid_date(s):
     try:
         return datetime.strptime(s, "%Y-%m-%d-%H-%M")
@@ -17,19 +20,24 @@ def valid_date(s):
         msg = "Not a valid date: '{}'.".format(s)
         raise argparse.ArgumentTypeError(msg)
 
-parser = argparse.ArgumentParser(description='Get traceroutes from measurement in -a- format')
-parser.add_argument('-s', "--start", help="The start time (format: YYYY-MM-DD-HH-MM)", required=True, type=valid_date)
-parser.add_argument('-e', "--end", help="The end time (format: YYYY-MM-DD-HH-MM)", required=True, type=valid_date)
-parser.add_argument('-m', "--msmid", help="The measurement ID", required=True, type=int)
+parser = argparse.ArgumentParser(
+    description='Get traceroutes from measurement in -a- format')
+parser.add_argument(
+    '-s', "--start", help="The start time (format: YYYY-MM-DD-HH-MM)", required=True, type=valid_date)
+parser.add_argument(
+    '-e', "--end", help="The end time (format: YYYY-MM-DD-HH-MM)", required=True, type=valid_date)
+parser.add_argument(
+    '-m', "--msmid", help="The measurement ID", required=True, type=int)
 args = parser.parse_args()
 
+# Read IX LAN prefixes from file
 ixp_prefixes = pytricia.PyTricia()
-
 with open("ix_prefixes.csv") as inputfile:
     reader = csv.DictReader(inputfile)
     for row in reader:
         ixp_prefixes[row['prefix']] = row['ix_name']
 
+# Get relevant results from atlas
 kwargs = {
     "msm_id": args.msmid,
     "start": args.start,
@@ -43,8 +51,11 @@ if is_success:
 else:
     exit
 
-filename = "results_{}_{}_{}.dat".format(args.start.strftime("%Y%m%d%H%M"),args.end.strftime("%Y%m%d%H%M"),args.msmid)
+# Define the output filename
+filename = "results_{}_{}_{}.dat".format(args.start.strftime(
+    "%Y%m%d%H%M"), args.end.strftime("%Y%m%d%H%M"), args.msmid)
 
+# Loop through everything and write to outputfile
 fail_count = 0
 with open(filename, "w") as outputfile:
     for result in results:
@@ -52,7 +63,8 @@ with open(filename, "w") as outputfile:
         ip_list = []
         failed = False
         for hop in tr.hops:
-            ips = list(set([ip_address(x.origin) for x in hop.packets if x is not None and x.origin is not None]))
+            ips = list(set([ip_address(x.origin)
+                            for x in hop.packets if x is not None and x.origin is not None]))
             if len(ips) == 0:
                 ip_list.append("*")
             elif len(ips) > 1:

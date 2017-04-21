@@ -7,6 +7,21 @@ from ripe.atlas.cousteau import AtlasResultsRequest
 from ipaddress import ip_address
 import pytricia
 import csv
+import argparse
+import pytz
+
+def valid_date(s):
+    try:
+        return datetime.strptime(s, "%Y-%m-%d-%H-%M")
+    except ValueError:
+        msg = "Not a valid date: '{}'.".format(s)
+        raise argparse.ArgumentTypeError(msg)
+
+parser = argparse.ArgumentParser(description='Get traceroutes from measurement in -a- format')
+parser.add_argument('-s', "--start", help="The start time (format: YYYY-MM-DD-HH-MM)", required=True, type=valid_date)
+parser.add_argument('-e', "--end", help="The end time (format: YYYY-MM-DD-HH-MM)", required=True, type=valid_date)
+parser.add_argument('-m', "--msmid", help="The measurement ID", required=True, type=int)
+args = parser.parse_args()
 
 ixp_prefixes = pytricia.PyTricia()
 
@@ -16,10 +31,9 @@ with open("ix_prefixes.csv") as inputfile:
         ixp_prefixes[row['prefix']] = row['ix_name']        
 
 kwargs = {
-    "msm_id": 5001,
-    "start": datetime(2017, 4, 18),
-    "stop": datetime(2017, 4, 19),
-#    "probe_ids": list(range(0,100))
+    "msm_id": args.msmid,
+    "start": args.start,
+    "stop": args.end,
 }
 
 is_success, results = AtlasResultsRequest(**kwargs).create()

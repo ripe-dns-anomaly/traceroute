@@ -28,7 +28,7 @@ ixp_prefixes = pytricia.PyTricia()
 with open("ix_prefixes.csv") as inputfile:
     reader = csv.DictReader(inputfile)
     for row in reader:
-        ixp_prefixes[row['prefix']] = row['ix_name']        
+        ixp_prefixes[row['prefix']] = row['ix_name']
 
 kwargs = {
     "msm_id": args.msmid,
@@ -43,8 +43,10 @@ if is_success:
 else:
     exit
 
+filename = "results_{}_{}_{}.dat".format(args.start.strftime("%Y%m%d%H%M"),args.end.strftime("%Y%m%d%H%M"),args.msmid)
+
 fail_count = 0
-with open("result.dat", "w") as outputfile:
+with open(filename, "w") as outputfile:
     for result in results:
         tr = Result.get(result)
         ip_list = []
